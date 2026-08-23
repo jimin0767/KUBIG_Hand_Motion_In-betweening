@@ -67,12 +67,20 @@ KUBIG 26-1 DL 3팀 / 정지민 브랜치
 
 ## 2-1. 비교 영상
 
-shinyoung 브랜치와 같은 형식(왼쪽 GT / 오른쪽 예측, MANO 관절 골격, gap 구간은 빨강).
-세 변형 모두 **같은 윈도우**를 써서 서로도 비교할 수 있습니다.
+shinyoung 브랜치와 **같은 윈도우·같은 렌더 설정**으로 만들었습니다. GT가 동일해야
+두 트랙 결과를 나란히 놓고 비교할 수 있기 때문입니다.
 
-- 윈도우: test 인덱스 71595, T=20, gap 평균 회전속도 6.8도/frame (표본 6,000개 중 최댓값)
-- 생성: `python scripts/14_readme_videos.py 20 mp4`
-- mp4는 `figures/videos/` 에 함께 있습니다
+- **윈도우 선택 로직을 그대로 이식** — `default_rng(seed=0)`, `n_try=300`, 같은 `test_index.npz`
+  → **test 인덱스 541122** (T=20, gap 평균 회전속도 5.98도/frame)
+- **MANO 설정도 일치** — shinyoung은 `smplx(flat_hand_mean=False)`라 내부에서 `hands_mean`을
+  포즈에 더한다. 우리 `ManoFK(add_hands_mean=True)`가 같은 동작을 한다
+- 형식: 왼쪽 GT / 오른쪽 예측, MANO 16관절 골격, gap 구간 빨강, figsize (10,5), interval 120ms
+- 생성: `python scripts/14_readme_videos.py 20 mp4` (mp4는 `figures/videos/`)
+
+> **주의** — 지표 계산(L2P)에는 `add_hands_mean=False`를 씁니다. 우리 데이터의 평균 포즈
+> 크기가 `hands_mean`과 거의 같아(35.0도 vs 32.8도) 이미 flat-hand 기준으로 보이기 때문입니다.
+> 여기서 `True`를 쓰는 것은 **shinyoung 렌더와 GT를 맞추기 위한 것**입니다. 어느 쪽이 맞는지는
+> 팀에서 확정이 필요합니다 (아래 8절).
 
 ### abs (절대값 예측)
 
@@ -208,7 +216,33 @@ python scripts/08_plots.py              # 결과 그림
 
 ---
 
-## 8. 저장소 구성
+## 8. 팀에서 확정이 필요한 것 — `flat_hand_mean`
+
+shinyoung 브랜치는 `smplx.create(..., flat_hand_mean=False, ...)` 를 씁니다.
+이 설정이면 smplx가 **입력 포즈에 `hands_mean`을 더한 뒤** LBS를 돌립니다.
+`hmib/mano.py`는 기본적으로 더하지 않습니다. 같은 데이터라도 손 모양이 달라집니다.
+
+측정한 근거 (오른손 60,000 프레임):
+
+| 항목 | 크기 (관절 평균) |
+|---|---|
+| MANO `hands_mean` | 32.8도 |
+| 우리 데이터 평균 포즈 | 35.0도 |
+| 둘의 차이 | 21.1도 |
+
+- 데이터가 **mean-hand 기준**이면 평균 포즈가 0에 가까워야 합니다 → 아님
+- 데이터가 **flat-hand 기준**이면 평균 포즈가 `hands_mean`과 비슷해야 합니다 → 부합
+- 따라서 `hands_mean`을 더하면 **평균 손 굽힘이 이중으로 반영**될 가능성이 큽니다
+
+영향 범위:
+
+- **L2Q · NPSS · geodesic**: 영향 없음 (회전 공간에서만 계산)
+- **L2P**: 영향 있음 (FK를 거치므로). 다만 pred와 gt에 같은 변환이 걸려 상대 비교는 유지됨
+- **시각화**: 영향 있음 — GT 손 모양 자체가 달라 보임
+
+---
+
+## 9. 저장소 구성
 
 ```
 hmib/       패키지

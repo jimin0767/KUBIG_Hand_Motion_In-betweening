@@ -56,30 +56,38 @@ LABEL = {"abs": "SILK abs (절대값 예측)",
          "delta_vel": "SILK delta_vel (잔차 + 속도손실)"}
 
 
-def find_dynamic_window(T=20, pool=6000, seed=42):
-    """gap 평균 회전속도가 가장 큰 윈도우를 고른다.
+def find_dynamic_window(T=20, n_try=300, min_avg_speed_deg=8.0, seed=0):
+    """이신영님 shinyoung 브랜치의 find_dynamic_window를 그대로 이식.
 
-    이신영님 코드는 8.0도/frame 임계값을 쓰지만, 우리 속도 정의(관절 평균 측지각)로는
-    T=20에서 6,000개를 훑어도 8.0을 넘는 윈도우가 하나도 없다(최대 6.8). 속도 정의가
-    다른 것으로 보여 임계값 대신 '표본 내 최댓값'을 쓰고, 분포상 위치를 같이 출력한다.
+    같은 인덱스 파일(test_index.npz)과 같은 난수 시드를 쓰므로 **같은 윈도우가 나온다.**
+    GT가 동일해야 두 팀 결과를 나란히 놓고 비교할 수 있다.
+
+    원본과 동일한 부분
+      - rng = np.random.default_rng(seed=0), n_try=300, replace=False (정렬하지 않음)
+      - 속도 = gap 프레임들 사이 측지각의 전체 평균 (target 프레임은 미포함)
+      - 8.0도/frame을 넘으면 즉시 반환, 없으면 본 것 중 최댓값
     """
     index_path = TEAM_INDEX_DIR / "test_index.npz"
     idx = np.load(index_path, allow_pickle=True)
     cand = np.where(idx["T"] == T)[0]
     rng = np.random.default_rng(seed)
-    sel = np.sort(rng.choice(cand, size=min(pool, len(cand)), replace=False))
-    ds = WindowDataset("test", index_path, subset=sel)
-    dl = DataLoader(ds, batch_size=512, shuffle=False, collate_fn=collate)
-    speeds = []
-    for b in dl:
-        x = b["x"]
-        R = rot.rot6d_to_matrix(x.reshape(len(x), -1, N_JOINTS, 6))
-        s = torch.rad2deg(rot.geodesic_angle(R[:, :-1], R[:, 1:])).mean(-1)
-        speeds.append(s[:, CTX:CTX + T].mean(-1))
-    gap_speed = torch.cat(speeds)
-    k = int(torch.argmax(gap_speed))
-    pct = float((gap_speed <= gap_speed[k]).float().mean() * 100)
-    return ds[k], float(gap_speed[k]), int(sel[k]), pct
+    tried = rng.choice(cand, size=min(n_try, len(cand)), replace=False)   # 정렬하지 않음
+
+    best_i, best_speed = None, -1.0
+    for i in tried:
+        ds1 = WindowDataset("test", index_path, subset=np.array([i]))
+        w, _ = ds1[0]
+        R = rot.rot6d_to_matrix(w.reshape(-1, N_JOINTS, 6))
+        gap_R = R[CTX:CTX + T]
+        ang = torch.rad2deg(rot.geodesic_angle(gap_R[:-1], gap_R[1:]))
+        sp = float(ang.mean())
+        if sp > best_speed:
+            best_speed, best_i = sp, int(i)
+        if sp >= min_avg_speed_deg:
+            best_speed, best_i = sp, int(i)
+            break
+    ds = WindowDataset("test", index_path, subset=np.array([best_i]))
+    return ds[0], best_speed, best_i
 
 
 def load_models():
@@ -136,16 +144,17 @@ def main():
     T = int(sys.argv[1]) if len(sys.argv) > 1 else 20
     ext = sys.argv[2] if len(sys.argv) > 2 else "mp4"
 
-    (w, T_w), speed, orig_idx, pct = find_dynamic_window(T=T)
-    print(f"윈도우 선택: test 인덱스 {orig_idx}, gap 평균속도 {speed:.1f}도/frame "
-          f"(표본 6,000개 중 상위 {100-pct:.2f}%)")
+    (w, T_w), speed, orig_idx = find_dynamic_window(T=T)
+    print(f"윈도우 선택(shinyoung 로직 그대로): test 인덱스 {orig_idx}, "
+          f"gap 평균속도 {speed:.2f}도/frame")
 
     b = {k: v.to(DEVICE) for k, v in collate([(w, T)]).items()}
     L = CTX + T + 1
     gap_mask = np.zeros(L, dtype=bool)
     gap_mask[CTX:L - 1] = True
 
-    fk = ManoFK("RIGHT")
+    # shinyoung 브랜치가 smplx(flat_hand_mean=False)를 쓰므로 렌더를 맞추려면 hands_mean을 더한다
+    fk = ManoFK("RIGHT", add_hands_mean=True)
     gt_joints = fk(rot.rot6d_to_matrix(
         b["x"][0].cpu().reshape(L, N_JOINTS, 6))).numpy()
 

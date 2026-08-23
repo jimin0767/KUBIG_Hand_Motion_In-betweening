@@ -53,10 +53,17 @@ class ManoFK:
 
     입력은 회전행렬 (..., 15, 3, 3), 출력은 (..., 16, 3) [미터].
     관절 순서: 0=wrist, 1-3 index, 4-6 middle, 7-9 pinky, 10-12 ring, 13-15 thumb.
+
+    add_hands_mean
+    --------------
+    smplx를 `flat_hand_mean=False`로 만들면 내부에서 pose에 `hands_mean`을 더한 뒤
+    LBS를 돌린다. 팀의 shinyoung 브랜치 시각화가 그 설정을 쓰므로, 렌더 결과를 맞추려면
+    같은 옵션이 필요하다. 기본값은 False(더하지 않음) — 우리 데이터의 평균 포즈 크기가
+    hands_mean과 거의 같아(35.0도 vs 32.8도) 이미 flat-hand 기준으로 보이기 때문이다.
     """
 
     def __init__(self, side: str = "RIGHT", device: str | torch.device = "cpu",
-                 dtype: torch.dtype = torch.float32):
+                 dtype: torch.dtype = torch.float32, add_hands_mean: bool = False):
         m = load_mano(side)
         J = np.asarray(m["J"], dtype=np.float64)                 # (16, 3)
         parents = np.asarray(m["kintree_table"], dtype=np.int64)[0].copy()
@@ -68,11 +75,30 @@ class ManoFK:
         rel = J.copy()
         rel[1:] = J[1:] - J[parents[1:]]
         self.rel = torch.tensor(rel, dtype=dtype, device=self.device)   # (16, 3)
+        self.add_hands_mean = add_hands_mean
+        self.hands_mean = torch.tensor(
+            np.asarray(m["hands_mean"], dtype=np.float64).reshape(15, 3),
+            dtype=dtype, device=self.device)
+
+    def _maybe_add_mean(self, R: torch.Tensor) -> torch.Tensor:
+        """smplx(flat_hand_mean=False)와 동일하게 axis-angle 공간에서 hands_mean을 더한다."""
+        if not self.add_hands_mean:
+            return R
+        from .rotation import matrix_to_axis_angle
+        aa = matrix_to_axis_angle(R) + self.hands_mean.to(R.device)
+        th = aa.norm(dim=-1, keepdim=True).clamp_min(1e-12)
+        k = aa / th
+        K = torch.zeros(*aa.shape[:-1], 3, 3, dtype=aa.dtype, device=aa.device)
+        K[..., 0, 1], K[..., 0, 2] = -k[..., 2], k[..., 1]
+        K[..., 1, 0], K[..., 1, 2] = k[..., 2], -k[..., 0]
+        K[..., 2, 0], K[..., 2, 1] = -k[..., 1], k[..., 0]
+        eye = torch.eye(3, dtype=aa.dtype, device=aa.device).expand_as(K)
+        return eye + torch.sin(th)[..., None] * K + (1 - torch.cos(th))[..., None] * (K @ K)
 
     def __call__(self, rotmats: torch.Tensor) -> torch.Tensor:
         """(..., 15, 3, 3) -> (..., 16, 3)."""
         lead = rotmats.shape[:-3]
-        R = rotmats.reshape(-1, 15, 3, 3).to(self.dtype)
+        R = self._maybe_add_mean(rotmats.reshape(-1, 15, 3, 3).to(self.dtype))
         N = R.shape[0]
         eye = torch.eye(3, dtype=self.dtype, device=R.device).expand(N, 1, 3, 3)
         R = torch.cat([eye, R], dim=1)                            # 손목(=항등) 붙여 16개
@@ -95,6 +121,11 @@ class ManoFK:
 
     def global_transforms(self, rotmats: torch.Tensor):
         """(..., 15, 3, 3) -> (전역 회전 (N,16,3,3), 관절 위치 (N,16,3))."""
+        return self._global_transforms_raw(
+            self._maybe_add_mean(rotmats.reshape(-1, 15, 3, 3).to(self.dtype)))
+
+    def _global_transforms_raw(self, rotmats: torch.Tensor):
+        """hands_mean을 이미 반영한 회전행렬을 받는다 (이중 적용 방지용 내부 함수)."""
         R = rotmats.reshape(-1, 15, 3, 3).to(self.dtype)
         N = R.shape[0]
         eye = torch.eye(3, dtype=self.dtype, device=R.device).expand(N, 1, 3, 3)
@@ -126,13 +157,13 @@ class ManoLBS(ManoFK):
 
     def vertices(self, rotmats: torch.Tensor) -> torch.Tensor:
         """(..., 15, 3, 3) -> (N, 778, 3)."""
-        R = rotmats.reshape(-1, 15, 3, 3).to(self.dtype)
+        R = self._maybe_add_mean(rotmats.reshape(-1, 15, 3, 3).to(self.dtype))
         N = R.shape[0]
         eye = torch.eye(3, dtype=self.dtype, device=R.device)
         # pose blend shape: (R - I)를 펼친 135차원
         pose_feat = (R - eye).reshape(N, 135)
         v = self.v_template[None] + torch.einsum("vdp,np->nvd", self.posedirs, pose_feat)
-        g_rot, g_pos = self.global_transforms(R)                       # (N,16,3,3),(N,16,3)
+        g_rot, g_pos = self._global_transforms_raw(R)                  # (N,16,3,3),(N,16,3)
         Jr = self.J[None].expand(N, 16, 3)
         t_off = g_pos - torch.einsum("nkij,nkj->nki", g_rot, Jr)       # (N,16,3)
         Rw = torch.einsum("vk,nkij->nvij", self.weights, g_rot)
