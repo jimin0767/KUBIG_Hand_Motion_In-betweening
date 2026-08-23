@@ -65,6 +65,32 @@ KUBIG 26-1 DL 3팀 / 정지민 브랜치
 
 ---
 
+## 2-1. 비교 영상
+
+shinyoung 브랜치와 같은 형식(왼쪽 GT / 오른쪽 예측, MANO 관절 골격, gap 구간은 빨강).
+세 변형 모두 **같은 윈도우**를 써서 서로도 비교할 수 있습니다.
+
+- 윈도우: test 인덱스 71595, T=20, gap 평균 회전속도 6.8도/frame (표본 6,000개 중 최댓값)
+- 생성: `python scripts/14_readme_videos.py 20 mp4`
+- mp4는 `figures/videos/` 에 함께 있습니다
+
+### abs (절대값 예측)
+
+![abs](figures/videos/abs_T20.gif)
+
+### delta (SLERP 잔차)
+
+![delta](figures/videos/delta_T20.gif)
+
+### delta_vel (잔차 + 속도손실)
+
+![delta_vel](figures/videos/delta_vel_T20.gif)
+
+> gap 중반에서 GT는 손가락이 말려 있는데 예측은 상대적으로 펴져 있습니다.
+> 움직임비(T=20에서 0.533)로 수치화한 "덜 움직이는 경향"이 눈으로도 보이는 구간입니다.
+
+---
+
 ## 3. 모델 3종
 
 세 모델의 **신경망 구조는 완전히 동일**(19,120,730 파라미터). 다른 것은 출력 해석 방식과 손실 항 하나뿐이라 통제 실험으로 성립.
