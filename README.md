@@ -41,6 +41,8 @@ https://github.com/user-attachments/assets/02f18bfb-378b-4ae0-a5b3-e28c55033729
 **구현 내용**
 
 - 이전 실험에 keyframe 구조 강화
+- 세그먼트 시작/중간/끝
+- 학습 때만
 
 **성능**
 
@@ -75,6 +77,7 @@ https://github.com/user-attachments/assets/7b1a2c81-830e-4caa-ac5d-22c0cadbbb3f
 
 **구현 내용**
 
+- v2 백본 사용
 - DDPM을 flow matching으로 변경
 - 샘플링 시 n_step=20
 
@@ -86,3 +89,20 @@ T=20: L2Q=0.0727 L2P=0.0041 NPSS=0.0489 (n=3840)
 T=30: L2Q=0.1018 L2P=0.0057 NPSS=0.0808 (n=3840)
 
 https://github.com/user-attachments/assets/db986186-7ff1-4e12-851c-397d11190e52
+
+
+
+## 참고 문헌
+
+**SILK (arXiv:2506.09075)**
+모델 백본 — 6층 Transformer 인코더를 diffusion/flow denoiser로 재활용. 목표-상대 위치 인코딩도 이 계보에서 가져옴
+
+**RMIB (Harvey et al. 2020, LaFAN1 논문)**
+time-to-arrival(ztta) 설계 — 우리 목표-상대 위치 인코딩이 이 방식과 문헌적으로 일치함을 확인하는 근거로 사용
+
+**CondMDI (Cohan et al. 2024, arXiv:2405.11126, SIGGRAPH)**
+핵심 방법론 — 학습 때 관측 구간을 강제로 정답으로 치환하는 inpainting 조건화 메커니즘. "단순 추론시점 임퓨테이션보다 학습 자체에 마스킹 패턴을 가르치는 게 낫다"는 이 논문의 발견을 그대로 채택
+
+**MotionGPT3 (2026)**
+모션 생성 도메인에서 flow matching이 diffusion보다 훨씬 적은 스텝(4~8)으로 수렴한다는 것을 실증 비교 — 4번 버전의 n_steps=20 채택 근거
+
