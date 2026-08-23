@@ -95,7 +95,7 @@ test셋 기준, gap 길이 T=5/10/20/30 버킷별로 평가 (표본 수 n=15,360
 Section 14에서 생성한 GT / Baseline / Two-stage / 다중 키프레임 비교 GIF입니다 
 
 **T=20**
-<img width="1000" height="1000" alt="viz_matched" src="https://github.com/user-attachments/assets/691f309e-981b-4259-8a56-373c9a1bff40" />
+<img width="1000" height="1000" alt="viz_matched_fixed" src="https://github.com/user-attachments/assets/abd9d458-b913-4271-85f0-ed489609971c" />
 
 
 ## 참고
