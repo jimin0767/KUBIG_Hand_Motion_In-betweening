@@ -4,7 +4,7 @@ SILK(2025)의 single-Transformer-encoder in-betweening 레시피를 손(hand) �
 MANO 기반 15관절, How2Sign)에 그대로 적용한 결정적(deterministic) 회귀 트랙. 모델 크기와
 손실 함수만 바꿔가며 비교한 6개 버전을 기록한다.
 
-## v1. baseline (`sl_model_a.py`, d_model=256)
+## v0. baseline (`sl_model_a.py`, d_model=256)
 
 **SILK 구조 그대로**
 
@@ -25,7 +25,7 @@ T=30: L2Q=0.0845 L2P=0.0055 NPSS=0.0325 (n=126206)
 
 ![gt vs baseline](results/gt_vs_baseline_135_T20.gif)
 
-## v2. 모델 확장 (`exp01_bigger_model/`, d_model=512, 19M)
+## v1. 모델 확장 (`exp01_bigger_model/`, d_model=512, 19M)
 
 **구현 내용**
 
@@ -46,7 +46,7 @@ T=30: L2Q=0.0822 L2P=0.0054 NPSS=0.0320 (n=126206)
 
 ![gt vs exp01](results/gt_vs_exp01_135_T20.gif)
 
-## v3. 잔차 예측 (`exp02_residual_prediction/`)
+## v2. 잔차 예측 (`exp02_residual_prediction/`)
 
 **구현 내용**
 
@@ -66,7 +66,7 @@ T=30: L2Q=0.0845 L2P=0.0055 NPSS=0.0324 (n=126206)
 
 ![gt vs exp02](results/gt_vs_exp02_135_T20.gif)
 
-## v4. 다양성 유도 손실 (`exp04_diversity_loss/`)
+## v3. 다양성 유도 손실 (`exp04_diversity_loss/`)
 
 **구현 내용**
 
@@ -88,7 +88,7 @@ T=30: L2Q=0.0849 L2P=0.0055 NPSS=0.0382 (n=126206)
 
 ![gt vs exp04](results/gt_vs_exp04_135_T20.gif)
 
-## v5. 속도 매칭 손실 (`exp05_velocity_loss/`)
+## v4. 속도 매칭 손실 (`exp05_velocity_loss/`)
 
 **구현 내용**
 
@@ -108,7 +108,7 @@ T=30: L2Q=0.0852 L2P=0.0056 NPSS=0.0326 (n=126206)
 
 ![gt vs exp05](results/gt_vs_exp05_135_T20.gif)
 
-## v6. SILK 원 논문 크기 (`exp06_full_silk_size/`, d_model=1024, 76M)
+## v5. SILK 원 논문 크기 (`exp06_full_silk_size/`, d_model=1024, 76M)
 
 **구현 내용**
 
