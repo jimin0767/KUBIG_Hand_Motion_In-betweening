@@ -27,8 +27,11 @@
 **성능**
 
 T=5: L2Q=0.0258 L2P=0.0014 NPSS=0.0040 (n=3840)
+
 T=10: L2Q=0.0566 L2P=0.0031 NPSS=0.0232 (n=3840)
+
 T=20: L2Q=0.0919 L2P=0.0051 NPSS=0.0613 (n=3840)
+
 T=30: L2Q=0.1178 L2P=0.0067 NPSS=0.0909 (n=3840)
 
 
@@ -47,8 +50,11 @@ https://github.com/user-attachments/assets/02f18bfb-378b-4ae0-a5b3-e28c55033729
 **성능**
 
 T=5: L2Q=0.0255 L2P=0.0014 NPSS=0.0040 (n=3840)
+
 T=10: L2Q=0.0516 L2P=0.0029 NPSS=0.0197 (n=3840)
+
 T=20: L2Q=0.0868 L2P=0.0051 NPSS=0.0538 (n=3840)
+
 T=30: L2Q=0.1119 L2P=0.0066 NPSS=0.0825 (n=3840)
 
 https://github.com/user-attachments/assets/aa00aeb9-dd2c-4e8d-b7a4-1e8120fbee6c
@@ -63,8 +69,11 @@ https://github.com/user-attachments/assets/aa00aeb9-dd2c-4e8d-b7a4-1e8120fbee6c
 **성능**
 
 T=5: L2Q=0.0276 L2P=0.0015 NPSS=0.0050 (n=3840)
+
 T=10: L2Q=0.0587 L2P=0.0032 NPSS=0.0290 (n=3840)
+
 T=20: L2Q=0.1061 L2P=0.0058 NPSS=0.0897 (n=3840)
+
 T=30: L2Q=0.1372 L2P=0.0074 NPSS=0.1308 (n=3840)
 
 
@@ -84,8 +93,11 @@ https://github.com/user-attachments/assets/7b1a2c81-830e-4caa-ac5d-22c0cadbbb3f
 **성능**
 
 T=5: L2Q=0.0199 L2P=0.0011 NPSS=0.0037 (n=3840)
+
 T=10: L2Q=0.0415 L2P=0.0023 NPSS=0.0179 (n=3840)
+
 T=20: L2Q=0.0727 L2P=0.0041 NPSS=0.0489 (n=3840)
+
 T=30: L2Q=0.1018 L2P=0.0057 NPSS=0.0808 (n=3840)
 
 https://github.com/user-attachments/assets/db986186-7ff1-4e12-851c-397d11190e52
