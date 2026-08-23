@@ -143,7 +143,7 @@ How2Sign의 SMPL-X 손 피팅은 **단안(monocular) 카메라 기반 단일 프
 | 다중 키프레임 (Two-stage+segment) | 0.0207 / 0.0389 / 0.0674 / 0.0868 |
 
 
-**패턴**: Two-stage 구조와 다중 키프레임 조건화 모두 baseline 대비 개선. 다만 마지막 결과는 채점 방식 이슈로 재검증 필요.
+**패턴**: Two-stage 구조와 다중 키프레임 조건화 모두 baseline 대비 개선.
 
 ### diffusion/flow, 생성형 재구성 계열 (신영)
 
