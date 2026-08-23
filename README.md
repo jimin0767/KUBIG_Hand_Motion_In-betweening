@@ -67,9 +67,6 @@ KUBIG 26-1 DL 3팀 / 정지민 브랜치
 
 ## 2-1. 비교 영상
 
-shinyoung 브랜치와 **같은 윈도우·같은 렌더 설정**으로 만들었습니다. GT가 동일해야
-두 트랙 결과를 나란히 놓고 비교할 수 있기 때문입니다.
-
 - **윈도우 선택 로직을 그대로 이식** — `default_rng(seed=0)`, `n_try=300`, 같은 `test_index.npz`
   → **test 인덱스 541122** (T=20, gap 평균 회전속도 5.98도/frame)
 - **MANO 설정도 일치** — shinyoung은 `smplx(flat_hand_mean=False)`라 내부에서 `hands_mean`을
