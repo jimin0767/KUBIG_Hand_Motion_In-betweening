@@ -96,19 +96,19 @@ Section 14에서 생성한 GT / Baseline / Two-stage / 다중 키프레임 비�
 
 **T=5**
 
-![T=5 비교](assets/viz_T5.gif)
+<img width="1000" height="1000" alt="viz_T5" src="https://github.com/user-attachments/assets/27aee1c7-797a-42bf-8458-a32f496197c0" />
 
 **T=10**
 
-![T=10 비교](assets/viz_T10.gif)
+<img width="1000" height="1000" alt="viz_T10" src="https://github.com/user-attachments/assets/e9063fb2-001f-4815-882d-0991a70e6f69" />
 
 **T=20**
 
-![T=20 비교](assets/viz_T20.gif)
+<img width="1000" height="1000" alt="viz_T20" src="https://github.com/user-attachments/assets/87a05bc4-a203-41b6-b36a-6119cefe10a8" />
 
 **T=30**
 
-![T=30 비교](assets/viz_T30.gif)
+<img width="1000" height="1000" alt="viz_T30" src="https://github.com/user-attachments/assets/70fa0585-ccd7-4a45-9a6d-cfd6f52d6a27" />
 
 ## 참고
 
